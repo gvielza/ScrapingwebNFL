@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -42,23 +47,28 @@ public class ScrapingWebSpringNflApplication {
 			objplayers.add(player);
 		}
 		for (Player a : objplayers) {
-			converterToJson(a);
+
+			enviarPlayer(converterToJson(a));
+			System.out.println("enviando"+a.getName()+"******************************");
 		}
 	}
-	
-	//metodo que me convierte las entidades string a json
-public static void converterToJson(Player py) {
-	ObjectMapper mapper=new ObjectMapper();
-	 try {
-		String json=mapper.writeValueAsString(py);
-		System.out.println(json);
-	} catch (JsonProcessingException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+
+	// metodo que me convierte las entidades string a json
+	public static String converterToJson(Player py) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(py);
+
 	}
-}
-
-
-
+//metodo que envía el jugador a la api
+	public static void enviarPlayer(String plJson) throws IOException {
+		CloseableHttpClient client = HttpClients.createDefault();
+		HttpPost httpPost = new HttpPost("http://localhost:8090/api");
+		StringEntity entity = new StringEntity(plJson);
+		httpPost.setEntity(entity);
+		httpPost.setHeader("Accept", "application/json");
+		httpPost.setHeader("Content-type", "application/json");
+		CloseableHttpResponse response = client.execute(httpPost);
+		client.close();
+	}
 
 }
